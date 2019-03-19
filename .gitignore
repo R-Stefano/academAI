@@ -1,0 +1,6 @@
+__pycache__
+models/*
+old_scripts/*
+preprocessing/pdfs/*
+preprocessing/texts/*
+preprocessing/xml2text/*
