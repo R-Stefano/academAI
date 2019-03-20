@@ -168,7 +168,9 @@ def model(hparams, X, past=None, scope='model', reuse=False):
 
         # Language model loss.  Do tokens <n predict token n?
         h_flat = tf.reshape(h, [batch*sequence, hparams.n_embd])
+        #h_flat has shape batch, 768
         logits = tf.matmul(h_flat, wte, transpose_b=True)
         logits = tf.reshape(logits, [batch, sequence, hparams.n_vocab])
+        #logits has shape batch, 50257
         results['logits'] = logits
         return results
