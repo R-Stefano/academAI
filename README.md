@@ -1,4 +1,4 @@
-# gpt-2
+# AcademIA
 OpenAI released  a smaller (117M parameter) version of GPT-2.
 
 See more details at [blog post](https://blog.openai.com/better-language-models/).
