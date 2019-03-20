@@ -7,7 +7,16 @@ import numpy as np
 import tensorflow as tf
 
 import model, sample, encoder
+'''
+every word is called token. The word/token is encoded into a number
 
+byte encoder is a dictonary where each character is the key and the value is the 
+byte number(?)
+
+They used byte pair encoding
+https://en.wikipedia.org/wiki/Byte_pair_encoding
+
+'''
 def interact_model(
     model_name='117M',
     seed=None,
@@ -70,6 +79,11 @@ def interact_model(
                 print('Prompt should not be empty!')
                 raw_text = input("Model prompt >>> ")
             context_tokens = enc.encode(raw_text)
+            print('input:')
+            print(raw_text)
+            print('encoded text:')
+            print(context_tokens)
+            '''
             generated = 0
             for _ in range(nsamples // batch_size):
                 out = sess.run(output, feed_dict={
@@ -81,6 +95,7 @@ def interact_model(
                     print("=" * 40 + " SAMPLE " + str(generated) + " " + "=" * 40)
                     print(text)
             print("=" * 80)
+            '''
 
 if __name__ == '__main__':
     fire.Fire(interact_model)

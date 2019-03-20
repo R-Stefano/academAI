@@ -17,7 +17,11 @@ def bytes_to_unicode():
     And avoids mapping to whitespace/control characters the bpe code barfs on.
     """
     bs = list(range(ord("!"), ord("~")+1))+list(range(ord("¡"), ord("¬")+1))+list(range(ord("®"), ord("ÿ")+1))
+    print('bs')
+    print(bs)
     cs = bs[:]
+    print('\ncs')
+    print(cs)
     n = 0
     for b in range(2**8):
         if b not in bs:
@@ -95,8 +99,24 @@ class Encoder:
 
     def encode(self, text):
         bpe_tokens = []
+        print('splitting the string input into a list of words.. (every element is a word)')
+        print('byte encoder')
+        print(self.byte_encoder)
+        '''
+        every word in the string is processed singularly.
+        The word is split into characters and each character is encoded as utf-8.
+        the utf-8 code of the character is used to retrieve the character 'normalized'.
+        Like a and A becomes a single character A with a single encode utf-8 number (65)
+
+        So now the word is normalized(it is still in string format)
+        '''
         for token in re.findall(self.pat, text):
             token = ''.join(self.byte_encoder[b] for b in token.encode('utf-8'))
+            print(self.bpe(token))
+            print(self.bpe(token).split(' '))
+            for bpe_token in self.bpe(token).split(' '):
+                print(bpe_token)
+            print('\n--------------')
             bpe_tokens.extend(self.encoder[bpe_token] for bpe_token in self.bpe(token).split(' '))
         return bpe_tokens
 

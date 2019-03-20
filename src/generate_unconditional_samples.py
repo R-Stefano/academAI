@@ -60,7 +60,7 @@ def sample_model(
         saver = tf.train.Saver()
         ckpt = tf.train.latest_checkpoint(os.path.join('models', model_name))
         saver.restore(sess, ckpt)
-
+        '''
         generated = 0
         while nsamples == 0 or generated < nsamples:
             out = sess.run(output)
@@ -69,7 +69,7 @@ def sample_model(
                 text = enc.decode(out[i])
                 print("=" * 40 + " SAMPLE " + str(generated) + " " + "=" * 40)
                 print(text)
-
+        '''
 if __name__ == '__main__':
     fire.Fire(sample_model)
 
