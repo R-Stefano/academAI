@@ -20,18 +20,28 @@
 </head>
 <body>
     <div id="background">
+        <div id="popup-box">
+            <div id="popup">
+                Loading...
+            </div>
+        </div>
         <div id="introduction-box">
             <h1>Academ.AI</h1>
-            <p>Here some description of the page</p>
+
+            <p>
+                Generating creative topic-related concepts powering Academia with AI. <br>
+                It is an open project AI system trained on neuroscience literature. 
+            </p>
             <div class="input-group mb-3">
-                <input type="text" class="form-control" placeholder="Start talking.." aria-label="Recipient's username" aria-describedby="basic-addon2">
+                <input type="text" class="form-control" placeholder="Start talking about the brain.." aria-label="Recipient's username" aria-describedby="basic-addon2">
                 <div class="input-group-append" id=input-btn>
-                    <button class="btn btn-outline-secondary">Send</button>
+                    <button class="btn btn-outline-secondary">Generate</button>
                 </div>
             </div>
         </div>
         <div id="output-box">
-            <textarea disabled class="md-textarea form-control" rows="10"></textarea>
+            <textarea disabled class="md-textarea form-control" rows="6">
+            </textarea>
         </div>
 
     </div>
@@ -39,10 +49,27 @@
 
 <script>
     $(function() { 
+        $('div#introduction-box h1').click(function() {
+            window.open('https://github.com/R-Stefano/academIA', 'academai.project'); 
+        })
+
+        $.ajax({
+            type: 'GET',
+            url: "{{ url_for('checkSetup') }}",
+            success: function(data){
+                console.log('data received back:', data);
+                $('div#popup-box').hide();
+                // do something with the received data
+            }, 
+            error: function(err) {
+                console.log('some error occured', err);
+            }
+        });
         $('button').click(function() {
             $.ajax({
                 type: 'POST',
                 url: "{{ url_for('generate_text') }}",
+                timeout: 300000,
                 data: JSON.stringify({'input':$('input:text').val()}),
                 contentType: 'application/json',
                 success: function(data){

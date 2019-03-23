@@ -1,6 +1,13 @@
 # AcademIA
-OpenAI released  a smaller (117M parameter) version of GPT-2.
+<p align=center>
+Generating creative topic-related concepts powering Academia with AI. <br>
+It is an open project AI system trained on neuroscience literature. 
+</p>
 
+The project borns with the idea of developing an Intelligent Scientific creative engine able to providing insights about a scientific area of interest scanning and learning the related literature. 
+
+
+The agent is a variation of a small (117M parameter) version of GPT-2.O developed by **[openAI]**(https://openai.com/).
 See more details at [blog post](https://blog.openai.com/better-language-models/).
 
 The code and samples from the paper ["Language Models are Unsupervised Multitask Learners"](https://d4mucfpksywv.cloudfront.net/better-language-models/language-models.pdf).
