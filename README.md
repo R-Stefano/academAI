@@ -1,4 +1,5 @@
 # AcademIA
+<p align="center"><img src="https://github.com/R-Stefano/academIA/blob/master/img.png" /></p>
 <p align=center>
 Powering Academia with AI generating creative topic-related concepts. <br>
 It is an open project AI system trained on neuroscience literature. 
