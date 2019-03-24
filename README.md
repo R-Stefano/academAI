@@ -1,38 +1,42 @@
 # AcademIA
 <p align=center>
-Generating creative topic-related concepts powering Academia with AI. <br>
+Powering Academia with AI generating creative topic-related concepts. <br>
 It is an open project AI system trained on neuroscience literature. 
 </p>
 
 The project borns with the idea of developing an Intelligent Scientific creative engine able to providing insights about a scientific area of interest scanning and learning the related literature. 
 
 
-The agent is a variation of a small (117M parameter) version of GPT-2.O developed by **[openAI]**(https://openai.com/).
+The agent is a variation of a small (117M parameter) version of GPT-2.O developed by [**openAI**](https://openai.com/).
 See more details at [blog post](https://blog.openai.com/better-language-models/).
 
 The code and samples from the paper ["Language Models are Unsupervised Multitask Learners"](https://d4mucfpksywv.cloudfront.net/better-language-models/language-models.pdf).
 
-## Installation
+## Contributing
+The idea excites you and you are interested in *Natural Language Processing*? 
 
-Git clone this repository, and `cd` into directory for remaining commands
+Why not contributing?
+
+Join us to Slack https://academai.slack.com  
+## Installation
+irst of all, you have to create a virtualenv and activate it.
+On the original repo there is the docker installation guideline as well. 
+
+Git clone this repository, and `cd` into the directory
 ```
 git clone https://github.com/R-Stefano/gpt-2.git
 cd gpt-2
 ```
 
-On the original repo there is the docker installation guideline. I'm going to use only **virtualenv**
-
-### Installation
-First of all, you have been created a virtualenv and activated it.
-
 Download the model data
+
 ```
 sh download_model.sh 117M
 ```
 
 Install the required packages
 ```
-pip3 install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 Set the environment variable to override the standard stream settings in UTF-8 mode.
@@ -44,8 +48,10 @@ Finally, test that it is working running
 ```
 python3 src/interactive_conditional_samples.py
 ```
+## Get Started
+You could start running it on [**Google Colab**](https://colab.research.google.com/gist/R-Stefano/db6b50d73bec98186b1ab5c726869585/gpt_2.ipynb)
 
-### Unconditional sample generation
+### 1. Unconditional sample generation
 
 To generate unconditional samples from the small model:
 ```
@@ -61,7 +67,7 @@ To check flag descriptions, use:
 python3 src/generate_unconditional_samples.py -- --help
 ```
 
-### Conditional sample generation
+### 2. Conditional sample generation
 
 To give the model custom prompts, you can use:
 ```
@@ -73,12 +79,12 @@ To check flag descriptions, use:
 python3 src/interactive_conditional_samples.py -- --help
 ```
 
-### Fine tuning on custom datasets
+### 3. Fine tuning on custom datasets
 
 To retrain GPT-2 117M model on a custom text dataset:
 
 ```
-PYTHONPATH=src ./train --dataset <file|directory|glob>
+PYTHONPATH=src ./train.py --dataset data/
 ```
 
 If you want to precompute the dataset's encoding for multiple runs, you can instead use:
@@ -87,15 +93,6 @@ If you want to precompute the dataset's encoding for multiple runs, you can inst
 PYTHONPATH=src ./encode.py <file|directory|glob> /path/to/encoded.npz
 PYTHONPATH=src ./train --dataset /path/to/encoded.npz
 ```
-
-## GPT-2 samples
-
-| WARNING: Samples are unfiltered and may contain offensive content. |
-| --- |
-
-While we have not yet released GPT-2 itself, you can see some samples from it in the `gpt-2-samples` folder.
-We show unconditional samples with default settings (temperature 1 and no truncation), with temperature 0.7, and with truncation with top_k 40.
-We show conditional samples, with contexts drawn from `WebText`'s test set, with default settings (temperature 1 and no truncation), with temperature 0.7, and with truncation with top_k 40.
 
 ## Citation
 
@@ -107,12 +104,6 @@ Please use the following bibtex entry:
   year={2019}
 }
 ```
-
-## Future work
-
-We may release code for evaluating the models on various benchmarks.
-
-We are still considering release of the larger models.
 
 ## License
 

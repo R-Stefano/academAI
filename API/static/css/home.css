@@ -20,11 +20,13 @@ div#popup-box {
 div#popup-box div#popup {
     color: white;
     border-radius: 2em;
-    width: 100px;
-    height: 100px;
     margin: auto;
     font-style: italic;
     font-size: 2em;
+}
+
+div#popup-box div#popup p {
+    text-align: center;
 }
 
 div#introduction-box {
@@ -60,7 +62,7 @@ div.input-group.mb-3 {
     margin: auto;
 }
 div#output-box {
-    width: 60%;
+    width: 80%;
 }
 
 div#output-box textarea {
@@ -71,3 +73,12 @@ div#output-box textarea {
     color: white;
     font-size: 1.2em;
 }
+
+@media only screen and (max-width: 600px) {
+    div#background {
+        width: fit-content;
+    }
+    div#introduction-box {
+      width: fit-content;
+    }
+  }
