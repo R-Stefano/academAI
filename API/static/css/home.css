@@ -12,20 +12,53 @@ div#introduction-box {
     color: white;
     width: fit-content;
     text-align: center;
+    width: 70%;
 }
 
 div#introduction-box h1 {
     font-size: 6em;
     font-family: 'Roboto', sans-serif;
     font-weight: 300;
+    letter-spacing: 0.05em;
+    margin-bottom: 0;
+    transition:1s;
+}
+
+div#introduction-box h1:hover {
+    cursor: pointer;
+    font-size: 7em;
+}
+
+div#introduction-box p {
+    width: 80%;
+    font-size: 0.95em;
+    font-style: italic;
+    margin: 0 auto 2em auto;
+}
+
+div.input-group.mb-3 {
+    width: 60%;
+    margin: auto;
 }
 
 div#output-box {
-    width: 60%;
+    width: 80%;
 }
 
 div#output-box textarea {
     resize: none;
-    background-color: black;
+    background-color: rgba(200,200,200,0.02);
+    border-radius: 1em;
+    border: none;
     color: white;
+    font-size: 1.2em;
+}
+
+@media only screen and (max-width: 600px) {
+    div#background {
+        width: fit-content;
+    }
+    div#introduction-box {
+      width: fit-content;
+    }
 }
