@@ -1,5 +1,4 @@
-# AcademIA
-<p align="center"><img src="https://github.com/R-Stefano/academIA/blob/master/img.png" /></p>
+<p align="center" style="width:100%; height:auto;"><img src="https://github.com/R-Stefano/academIA/blob/master/img.png" /></p>
 
 The project borns with the idea of developing an Intelligent Scientific creative engine able to providing insights about a scientific area of interest scanning and learning the related literature. 
 
