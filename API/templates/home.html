@@ -16,44 +16,130 @@
 
     <!--Import css-->
     <link rel="stylesheet" href="{{url_for('static',filename='css/home.css')}}">
+    <!--import icons-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
 
 </head>
 <body>
     <div id="background">
         <div id="introduction-box">
-            <h1>Academ.AI</h1>
+            <h1 onclick="window.open('https://github.com/R-Stefano/academAI/tree/master')">Academ.AI</h1>
             <p>Powering Academia with AI generating creative topic-related concepts. <br>
                 It is an open project AI system trained on neuroscience literature.</p>
             <div class="input-group mb-3">
-                <input type="text" class="form-control" placeholder="Ask something about the brain.." aria-label="Recipient's username" aria-describedby="basic-addon2">
+                <input type="text" class="form-control" placeholder="Ask something about the brain.." onfocus="this.value=''" aria-describedby="basic-addon2">
                 <div class="input-group-append" id=input-btn>
                     <button class="btn btn-outline-secondary">Generate</button>
                 </div>
             </div>
         </div>
         <div id="output-box">
+            <!--
             <textarea disabled class="md-textarea form-control" rows="6"></textarea>
+            -->
+            <ul class="list-group">
+            </ul>
         </div>
     </div>
 </body>
-
 <script>
-    $(function() { 
-        $('button').click(function() {
-            $.ajax({
-                type: 'POST',
-                url: "{{ url_for('generate_text') }}",
-                data: JSON.stringify({'input':$('input:text').val().replace(/(<([^>]+)>)/ig,"")}),
-                contentType: 'application/json',
-                success: function(data){
-                    $('textarea').val(data);
-                    console.log('data received back:', data);
-                    // do something with the received data
-                }, 
-                error: function(err) {
-                    console.log('some error occured', err);
+    //when the user leave the page somehow, if a query is not saved yet, save it.
+    $( window ).on('unload', function() {
+        if (sessionStorage.getItem('prev_input')) {
+            saveQuery();
+        }
+    });
+    
+    //toggle the positive or negative tag
+    function setRating(evt) {
+        var el=$(evt.target);
+        if (el.attr('id') != 'positiveTag') {
+            el.attr('id', 'positiveTag');
+        } else {
+            el.attr('id', 'negativeTag');
+        }
+    }
+
+    function saveQuery() {
+        //data to send to DB
+        var data= {'input':sessionStorage.getItem('prev_input'),
+                    'sentences': []}
+
+        //retrieve the sentences and their rating
+        $('ul.list-group').children().each(function() {
+            data['sentences'].push(
+                {
+                    'sentence': $(this).text(),
+                    'rating': $(this).attr('id')
                 }
-            });
+            )
+        })
+
+        $.ajax({
+            type: 'POST',
+            url: "{{ url_for('save_db') }}",
+            data: JSON.stringify(data),
+            contentType: 'application/json',
+            success: function(data){
+                console.log(data)
+                sessionStorage.clear();
+                console.log(sessionStorage.getItem('prev_input'))
+            }, 
+            error: function(err) {
+                console.log('some error occured', err);
+            }
+        });
+    }
+    $(function() {
+        //allows toggle colors green/red on the sentences when the mouse is over
+        $('ul.list-group').on('mouseenter mouseleave', 'li.list-group-item', function(evt) {
+            if (event.type == 'mouseover' ) {
+                if ($(this).attr('id')=='positiveTag') {
+                    $(this).attr('style','background-color: rgba(255,0,0,0.54) !important');
+                } else {
+                    $(this).attr('style','background-color: rgba(0,255,0,0.54) !important');
+                }
+            } else {
+                $(this).attr('style','background-color: ');
+            }
+        });
+
+        //Send previous query if any and input to the server. Return the sentences 
+        $('button').click(function() {
+            //if first query, jump this line. Otherwise save the results of the previous query
+            if (sessionStorage.getItem('prev_input')) {
+                console.log('there is a old query to save before return the new one.')
+                saveQuery();
+            }
+
+            //check that input is not empty
+            var questionText=$('input:text').val().replace(/(<([^>]+)>)/ig,"");
+            if (questionText.length>0) {
+                $.ajax({
+                    type: 'POST',
+                    url: "{{ url_for('generate_text') }}",
+                    data: JSON.stringify({'input':questionText}),
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    success: function(data){
+                        //delete the previous output
+                        $('ul.list-group').html('');
+                        //add the new output
+                        for (var sent of data.sentences) {
+                            $('ul.list-group').append('<li id="none" class="list-group-item d-flex justify-content-between align-items-center" onclick="setRating(event)">'+sent+'</li>')
+                        }
+                        //$('textarea').val(data);
+                        //Store the input used to retrieve the sentences in order to save it later
+                        //on the db with the rated answers
+                        sessionStorage.setItem('prev_input', $('input:text').val().replace(/(<([^>]+)>)/ig,""))
+                    }, 
+                    error: function(err) {
+                        console.log('some error occured', err);
+                    }
+                });
+            } else {
+                alert("You can't leave the field empty");
+            }
         })
     })
 </script>
