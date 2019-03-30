@@ -4,3 +4,4 @@ old_scripts/*
 preprocessing/pdfs/*
 preprocessing/texts/*
 preprocessing/xml2text/*
+API/models/117M/frozen_model.pb
