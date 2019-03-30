@@ -43,7 +43,7 @@
             $.ajax({
                 type: 'POST',
                 url: "{{ url_for('generate_text') }}",
-                data: JSON.stringify({'input':$('input:text').val()}),
+                data: JSON.stringify({'input':$('input:text').val().replace(/(<([^>]+)>)/ig,"")}),
                 contentType: 'application/json',
                 success: function(data){
                     $('textarea').val(data);
