@@ -9,7 +9,7 @@ import re
 class Question():
     userQuestion = ""
     wordsList = []
-    topic = []
+    usefulWords = []
     header = ""
     
     def getUserQuestion(self):
