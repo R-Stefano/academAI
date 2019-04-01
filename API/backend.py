@@ -1,6 +1,25 @@
 from flask import Flask, render_template, request
 import json
+import os
+import psycopg2
 
+DATABASE_URL='postgres://zvooegvhaqwbne:aba6c4f9bc784483820d76ff32a1b3bb7abdc87edf95f1eeaa1ec8643aa460c4@ec2-23-23-173-30.compute-1.amazonaws.com:5432/d1p8og4frpej6q'
+
+dbname='d1p8og4frpej6q'
+user='zvooegvhaqwbne'
+password='aba6c4f9bc784483820d76ff32a1b3bb7abdc87edf95f1eeaa1ec8643aa460c4'
+host='ec2-23-23-173-30.compute-1.amazonaws.com'
+port='5432'
+'''
+conn= psycopg2.connect(dbname=dbname,
+                       user=user,
+                       password=password,
+                       host=host,
+                       port=port)
+'''
+conn=psycopg2.connect(DATABASE_URL)
+#open connection
+cur = conn.cursor()
 app = Flask(__name__)
 
 @app.route("/")
@@ -54,10 +73,23 @@ def save_db():
 
     TODO: add queries for db
     '''
+    tag_ids={
+        'negativeTag':0,
+        'none':1,
+        'positiveTag':2
+    }
     if request.method == "POST":
         #retrieve the data sended
         data=request.json
         print('saving data on db')
+        #Insert the question and retrieve its id to use in the following
+        cur.execute("INSERT INTO d_queries(question) VALUES('{}') RETURNING id;".format(data['input']))
+        q_id = cur.fetchall()[0][0]
+        for s in data['sentences']:
+            print(s['rating'])
+            print(tag_ids[s['rating']])
+            cur.execute("INSERT INTO d_answers(query_id, answer, rating) VALUES({},'{}',{});".format(q_id, s['sentence'], tag_ids[s['rating']]))
+    
         return 'query saved'
     else:
         return 'error while saving the query'
