@@ -9,6 +9,8 @@ import re
 class Question():
     userQuestion = ""
     wordsList = []
+    topic = []
+    header = ""
     
     def getUserQuestion(self):
         #This function just gets the user question. Takes no parameters
@@ -29,19 +31,71 @@ class Question():
         cleanUserQuestion = cleanUserQuestion.upper()
         self.userQuestion = cleanUserQuestion
 
+    def identifyHeader(self):
+        #Identifies the header of the question
+        self.header = self.wordsList[0]
+        del self.wordsList[0]
+
+    def ghostToast(self):
+        #Useless function used to cheat so the try/except method actually works
+        a = 0
+
+    def removeArticles(self):
+        #Removes the words that will not be compared
+        #The words removed are particles that only work for grammatical puroposes but are not part of the meaning of the sentence
+        try:
+            self.wordsList.remove("A")
+        except:
+            self.ghostToast()
+        try:
+            self.wordsList.remove("THE")
+        except:
+            self.ghostToast()
+        try:
+            self.wordsList.remove("OF")
+        except:
+            self.ghostToast()
+        try:
+            self.wordsList.remove("THIS")
+        except:
+            self.ghostToast()
+        try:
+            self.wordsList.remove("THESE")
+        except:
+            self.ghostToast()
+        try:
+            self.wordsList.remove("FOR")
+        except:
+            self.ghostToast()
+        try:
+            self.wordsList.remove("IN")
+        except:
+            self.ghostToast()
+        try:
+            self.wordsList.remove("AT")
+        except:
+            self.ghostToast()
+        try:
+            self.wordsList.remove("")
+        except:
+            self.ghostToast()
+
+    def setUsefulWords(self):
+        #Defines the final list of words that will be compared to the text
+        self.usefulWords = self.wordsList
+        
+
     def prepareCompare(self):
         #Calls other class functions to make a clean, word-split question
         self.standardizeQuestion()
         self.splitQuestionWords()
+        self.identifyHeader()
+        self.removeArticles()
+        self.setUsefulWords()
+        print("Comparing useful words = " , self.usefulWords)
+        print("The header of the question is: ", self.header)
 
-
-#TODO clean question
-#TODO clean text
-#TODO compare text and questions (include some number crunching)
-#TODO output results
 
 activeQuestion = Question()
 activeQuestion.getUserQuestion()
 activeQuestion.prepareCompare()
-activeQuestion.standardizeQuestion()
-print(activeQuestion.wordsList)
