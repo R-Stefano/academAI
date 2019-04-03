@@ -5,18 +5,6 @@ import psycopg2
 
 DATABASE_URL='postgres://zvooegvhaqwbne:aba6c4f9bc784483820d76ff32a1b3bb7abdc87edf95f1eeaa1ec8643aa460c4@ec2-23-23-173-30.compute-1.amazonaws.com:5432/d1p8og4frpej6q'
 
-dbname='d1p8og4frpej6q'
-user='zvooegvhaqwbne'
-password='aba6c4f9bc784483820d76ff32a1b3bb7abdc87edf95f1eeaa1ec8643aa460c4'
-host='ec2-23-23-173-30.compute-1.amazonaws.com'
-port='5432'
-'''
-conn= psycopg2.connect(dbname=dbname,
-                       user=user,
-                       password=password,
-                       host=host,
-                       port=port)
-'''
 conn=psycopg2.connect(DATABASE_URL)
 #open connection
 cur = conn.cursor()
