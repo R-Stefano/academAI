@@ -2,13 +2,15 @@ from flask import Flask, render_template, request
 import json
 import os
 import psycopg2
+from db.dbManager import *
+
+#open connection
+app = Flask(__name__)
 
 DATABASE_URL='postgres://zvooegvhaqwbne:aba6c4f9bc784483820d76ff32a1b3bb7abdc87edf95f1eeaa1ec8643aa460c4@ec2-23-23-173-30.compute-1.amazonaws.com:5432/d1p8og4frpej6q'
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 
-conn=psycopg2.connect(DATABASE_URL)
-#open connection
-cur = conn.cursor()
-app = Flask(__name__)
+db.init_app(app)
 
 @app.route("/")
 def home():
@@ -69,15 +71,20 @@ def save_db():
     if request.method == "POST":
         #retrieve the data sended
         data=request.json
-        print('saving data on db')
-        #Insert the question and retrieve its id to use in the following
-        cur.execute("INSERT INTO d_queries(question) VALUES('{}') RETURNING id;".format(data['input']))
-        q_id = cur.fetchall()[0][0]
+        print('saving data on question', data['input'], 'on db')
+        #Insert the question
+        add_q = QueryEntry(data['input'])
+        db.session.add(add_q)
+        db.session.commit()
+        #retrieve the id assigned to the new entry
+        db.session.refresh(add_q)
+        q_id=add_q.id
         for s in data['sentences']:
             print(s['rating'])
             print(tag_ids[s['rating']])
-            cur.execute("INSERT INTO d_answers(query_id, answer, rating) VALUES({},'{}',{});".format(q_id, s['sentence'], tag_ids[s['rating']]))
-    
+            add_a = AnswerEntry(q_id, s['sentence'], tag_ids[s['rating']])
+            db.session.add(add_a)
+        db.session.commit()     
         return 'query saved'
     else:
         return 'error while saving the query'

@@ -74,7 +74,7 @@
     </script>
 <script>
     //when the user leave the page somehow, if a query is not saved yet, save it.
-    $( window ).on('unload', function() {
+    $( window ).on('beforeunload', function() {
         if (sessionStorage.getItem('prev_input')) {
             saveQuery();
         }
