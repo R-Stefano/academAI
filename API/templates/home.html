@@ -18,10 +18,29 @@
     <link rel="stylesheet" href="{{url_for('static',filename='css/home.css')}}">
     <!--import icons-->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+    <script src="{{url_for('static',filename='js/three.r92.min.js')}}"></script>
+    <script src="{{url_for('static',filename='js/vanta.net.min.js')}}"></script>
 
 </head>
 <body>
     <div id="background">
+        <!--MODAL THAT STORES THE POPUP MESSAGES: Tutorial, error question format-->
+        <div class="modal" tabindex="-1" role="dialog" id="popup">
+            <div class="modal-dialog" role="document" style="margin: 15% auto;">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="font-weight:bold;">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeModal()">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p style="text-align: center;">Modal body text goes here.</p>
+                </div>
+                </div>
+            </div>
+        </div>
+        <!--Defines the header, description and input field-->
         <div id="introduction-box">
             <h1 onclick="window.open('https://github.com/R-Stefano/academAI/tree/master')">Academ.AI</h1>
             <p>Powering Academia with AI generating creative topic-related concepts. <br>
@@ -33,6 +52,7 @@
                 </div>
             </div>
         </div>
+        <!--Defines the output box, at the moment it is a list of sentences-->
         <div id="output-box">
             <!--
             <textarea disabled class="md-textarea form-control" rows="6"></textarea>
@@ -43,8 +63,18 @@
     </div>
 </body>
 <script>
+    VANTA.NET({
+      el: "div#background",
+      color: 0xffffff,
+      backgroundColor: 0x20f,
+      points: 11.00,
+      maxDistance: 19.00,
+      spacing: 17.00
+    })
+    </script>
+<script>
     //when the user leave the page somehow, if a query is not saved yet, save it.
-    $( window ).on('unload', function() {
+    $( window ).on('beforeunload', function() {
         if (sessionStorage.getItem('prev_input')) {
             saveQuery();
         }
@@ -81,16 +111,64 @@
             data: JSON.stringify(data),
             contentType: 'application/json',
             success: function(data){
-                console.log(data)
-                sessionStorage.clear();
-                console.log(sessionStorage.getItem('prev_input'))
+                sessionStorage.removeItem("prev_input");
             }, 
             error: function(err) {
-                console.log('some error occured', err);
+                displayModal('Error!', 'Some error occured in sending the question: ', err);
+            }
+        });
+    }
+
+    function displayModal(title, description) {
+        $('div#popup').show();
+        $('div.modal-header h5.modal-title').text(title);
+        $('div.modal-body p').html(description);
+    }
+
+    function closeModal() {
+        $('div#popup').hide();
+    }
+
+    //send the question to the server and return the answers
+    function sendQuestion(questionText) {
+        $.ajax({
+            type: 'POST',
+            url: "{{ url_for('generate_text') }}",
+            data: JSON.stringify({'input':questionText}),
+            contentType: 'application/json',
+            dataType: 'json',
+            success: function(data){
+                //delete the previous output
+                $('ul.list-group').html('');
+                //add the new output
+                for (var sent of data.sentences) {
+                    $('ul.list-group').append('<li id="none" class="list-group-item d-flex justify-content-between align-items-center" onclick="setRating(event)">'+sent+'</li>')
+                }
+                //Store the input used to retrieve the sentences in order to save it later
+                //on the db with the rated answers
+                sessionStorage.setItem('prev_input', $('input:text').val().replace(/(<([^>]+)>)/ig,""))
+                
+                if (!sessionStorage.getItem('tutorialDone')) {
+                    console.log('here');
+                    console.log(sessionStorage.getItem('tutorialDone'));
+                    //once got the resulsts, show the popup about how to rate them
+                    displayModal('We want your opinion!', 
+                                'Let us know if the answers have been usefull by marking them <span style="color:green;font-weight: bold;">green</span> or <span style="color:red;font-weight: bold;">red</span>. \
+                                <br>This will help us to provide to you the best service possible')
+
+                    sessionStorage.setItem('tutorialDone', 'true');
+                    console.log(sessionStorage.getItem('tutorialDone'));
+
+                }
+            }, 
+            error: function(err) {
+                displayModal('Error!', 'Some error occured in sending the question: ', err);
             }
         });
     }
     $(function() {
+        //only when the page load, remove the old qiuestion because answers disappeared
+        sessionStorage.removeItem("prev_input");
         //allows toggle colors green/red on the sentences when the mouse is over
         $('ul.list-group').on('mouseenter mouseleave', 'li.list-group-item', function(evt) {
             if (event.type == 'mouseover' ) {
@@ -105,40 +183,28 @@
         });
 
         //Send previous query if any and input to the server. Return the sentences 
-        $('button').click(function() {
+        $('div#input-btn button').click(function() {
             //if first query, jump this line. Otherwise save the results of the previous query
             if (sessionStorage.getItem('prev_input')) {
                 console.log('there is a old query to save before return the new one.')
                 saveQuery();
             }
-
-            //check that input is not empty
+            
+            //Check that the input is not empty
             var questionText=$('input:text').val().replace(/(<([^>]+)>)/ig,"");
             if (questionText.length>0) {
-                $.ajax({
-                    type: 'POST',
-                    url: "{{ url_for('generate_text') }}",
-                    data: JSON.stringify({'input':questionText}),
-                    contentType: 'application/json',
-                    dataType: 'json',
-                    success: function(data){
-                        //delete the previous output
-                        $('ul.list-group').html('');
-                        //add the new output
-                        for (var sent of data.sentences) {
-                            $('ul.list-group').append('<li id="none" class="list-group-item d-flex justify-content-between align-items-center" onclick="setRating(event)">'+sent+'</li>')
-                        }
-                        //$('textarea').val(data);
-                        //Store the input used to retrieve the sentences in order to save it later
-                        //on the db with the rated answers
-                        sessionStorage.setItem('prev_input', $('input:text').val().replace(/(<([^>]+)>)/ig,""))
-                    }, 
-                    error: function(err) {
-                        console.log('some error occured', err);
-                    }
-                });
+                var questions=['what', 'when', 'who', 'how', 'where'];
+                //check that one of the 5 W questions is in the question
+                firstWord=questionText.split(' ')[0].toLowerCase();
+                isQuestionValid=questions.includes(firstWord);
+
+                if (isQuestionValid) {
+                    sendQuestion(questionText);
+                } else {
+                    displayModal('Error!', "The question is not valid. It must contain: what, when, who, how, where");
+                }
             } else {
-                alert("You can't leave the field empty");
+                displayModal('Error!', 'The input can\'t be empty!');
             }
         })
     })
