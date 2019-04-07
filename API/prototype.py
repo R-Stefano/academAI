@@ -6,8 +6,10 @@
 import re
 import nltk
 from nltk.stem import WordNetLemmatizer
+import os 
 
-
+wordnet_lemmatizer = WordNetLemmatizer()
+currentText = open("C:\\Users\\AMD\\Desktop\\academAI\\data\\Neuroscience_1.txt","r")
 
 
 #Definition of question class
@@ -31,8 +33,6 @@ class Question():
         for word in self.wordsList:
             if word in punctuations:
                 self.wordsList.remove(word)
-        print(self.wordsList)
-        input()
 
     def identifyHeader(self):
         #Identifies the header of the question
@@ -43,17 +43,15 @@ class Question():
         #Removes the words that will not be compared
         #The words removed are particles that only work for grammatical puroposes but are not part of the meaning of the sentence
         temporary = nltk.pos_tag(self.wordsList)
-        print(temporary)
         for idx, tag in enumerate(temporary):
             if (tag[1][:2]=="VB"):
                 self.verbs.append(tag[0])
                 del temporary[idx]
-
-            if (tag[1][:2]=="DT"):
-                del temporary[idx]
-                
-        for idx, tag in enumerate(temporary):
             self.usefulWords.append(temporary[idx][0])
+
+        for word in self.usefulWords:
+            if ((word == "A")or(word== "THE")or(word=="OF")or(word=="IN")):
+                self.usefulWords.remove(word)
         
 
     def prepareCompare(self):
@@ -61,16 +59,10 @@ class Question():
         self.standardizeQuestion()
         self.identifyHeader()
         self.removeArticles()
-        print("Comparing useful words = " , self.usefulWords)
-        print("The header of the question is: ", self.header)
-        print(self.verbs)
         #for word in self.verbs:
             #print(wordnet_lemmatizer.lemmatize(word,pos="v"))
 
 
-
-
-wordnet_lemmatizer = WordNetLemmatizer()
 
 class TextConverter():
     Text = ""
@@ -86,6 +78,7 @@ class TextConverter():
         print(self.sentenceList)
 
     def prepareCompare(self):
+        self.Text = self.Text.upper()
         self.splitSentences()
         for idx in range(0,len(self.sentenceList)-1,1):
             sentence = self.sentenceList[idx]
@@ -100,7 +93,6 @@ class TextConverter():
 
     def compare(self,question):
         temporaryList = []
-        question = question.split(" ")
         similarity = {}
         maxSim = 0
         maxSimIdx = 0
@@ -116,16 +108,17 @@ class TextConverter():
             if (simIndex > maxSim):
                 maxSim = simIndex
                 maxSimIdx = idx
-        print("Highest similarity sentence: ", self.sentenceList[maxSimIdx])
-            
+        print("Here is my answer: ", self.sentenceList[maxSimIdx])
+
+       
 activeQuestion = Question()
 activeQuestion.getUserQuestion()
 activeQuestion.prepareCompare()
 
-entry = input("Text: ")
+entry = currentText.read()
 myText = TextConverter(entry)
 myText.prepareCompare()
-myText.compare("what is the role of the neuron in the process of synapsis")
+myText.compare(activeQuestion.usefulWords)
         
 
 
