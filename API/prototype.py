@@ -9,7 +9,6 @@ from nltk.stem import WordNetLemmatizer
 import os 
 
 wordnet_lemmatizer = WordNetLemmatizer()
-currentText = open("C:\\Users\\AMD\\Desktop\\academAI\\data\\Neuroscience_1.txt","r")
 
 
 #Definition of question class
@@ -103,22 +102,34 @@ class TextConverter():
             for idx2 in range(0, len(question)):
                 if question[idx2] in temporaryList:
                     counter += 1
-            simIndex = counter/len(temporaryList)
+            try:
+                simIndex = counter/len(temporaryList)
+            except Exception:
+                simIndex = 0
             similarity[idx]=simIndex
             if (simIndex > maxSim):
                 maxSim = simIndex
                 maxSimIdx = idx
         print("Here is my answer: ", self.sentenceList[maxSimIdx])
 
-       
+d = os.getcwd()
+d = d.replace("API","data")
+sources = []
+sources = os.listdir(d)
+for i in range(0, len(sources)-1):
+    d = os.getcwd()
+    d = d.replace("API","data")
+    d = d + "\\" + sources[i]
+    sources[i] = d
 activeQuestion = Question()
 activeQuestion.getUserQuestion()
 activeQuestion.prepareCompare()
-
-entry = currentText.read()
-myText = TextConverter(entry)
-myText.prepareCompare()
-myText.compare(activeQuestion.usefulWords)
+for file in sources:
+    currentText = open(file,"r")
+    entry = currentText.read()
+    myText = TextConverter(entry)
+    myText.prepareCompare()
+    myText.compare(activeQuestion.usefulWords)
         
 
 
