@@ -110,7 +110,7 @@ class TextConverter():
             if (simIndex > maxSim):
                 maxSim = simIndex
                 maxSimIdx = idx
-        print("Here is my answer: ", self.sentenceList[maxSimIdx])
+        return (self.sentenceList[maxSimIdx])
 
 d = os.getcwd()
 d = d.replace("API","data")
@@ -124,14 +124,24 @@ for i in range(0, len(sources)-1):
 activeQuestion = Question()
 activeQuestion.getUserQuestion()
 activeQuestion.prepareCompare()
+answers = []
 for file in sources:
-    currentText = open(file,"r")
-    entry = currentText.read()
-    myText = TextConverter(entry)
-    myText.prepareCompare()
-    myText.compare(activeQuestion.usefulWords)
+    try:
+        currentText = open(file,"r")
+        entry = currentText.read()
+        myText = TextConverter(entry)
+        myText.prepareCompare()
+        answers.append(myText.compare(activeQuestion.usefulWords))
+    except Exception:
+        a = 42
         
-
+        
+for sentence in answers:
+    finalAnswer = ""
+    for j in range(0,len(sentence)-1):
+        finalAnswer = finalAnswer + " " + sentence[j] 
+    print(finalAnswer)
+    print("\n")
 
 
     
