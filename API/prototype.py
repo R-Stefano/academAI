@@ -4,6 +4,12 @@
 #A section from a sample text is used but in future implementations it could range from small papers to whole books
 
 import re
+import nltk
+from nltk.stem import WordNetLemmatizer
+import os 
+
+wordnet_lemmatizer = WordNetLemmatizer()
+
 
 #Definition of question class
 class Question():
@@ -11,91 +17,132 @@ class Question():
     wordsList = []
     usefulWords = []
     header = ""
+    verbs = []
+    wordnet_lemmatizer = WordNetLemmatizer()
     
     def getUserQuestion(self):
         #This function just gets the user question. Takes no parameters
         newQuestion = input("Please insert your question: ")
         self.userQuestion = newQuestion
-
-    def splitQuestionWords(self):
-        #This function splits the question's words into a list
-        localQuestionList = []
-        localQuestionList = self.userQuestion.split(" ")
-        self.wordsList = localQuestionList
+        self.userQuestion = self.userQuestion.upper()
 
     def standardizeQuestion(self):
-        #This function eliminates all non alphabetic characters
-        cleanUserQuestion = self.userQuestion
-        regex = re.compile('[^a-zA-Z]')
-        cleanUserQuestion = regex.sub(' ',cleanUserQuestion)
-        cleanUserQuestion = cleanUserQuestion.upper()
-        self.userQuestion = cleanUserQuestion
+        punctuations="?:!.,;"
+        self.wordsList = nltk.word_tokenize(self.userQuestion)
+        for word in self.wordsList:
+            if word in punctuations:
+                self.wordsList.remove(word)
 
     def identifyHeader(self):
         #Identifies the header of the question
         self.header = self.wordsList[0]
         del self.wordsList[0]
 
-    def ghostToast(self):
-        #Useless function used to cheat so the try/except method actually works
-        a = 0
-
     def removeArticles(self):
         #Removes the words that will not be compared
         #The words removed are particles that only work for grammatical puroposes but are not part of the meaning of the sentence
-        try:
-            self.wordsList.remove("A")
-        except:
-            self.ghostToast()
-        try:
-            self.wordsList.remove("THE")
-        except:
-            self.ghostToast()
-        try:
-            self.wordsList.remove("OF")
-        except:
-            self.ghostToast()
-        try:
-            self.wordsList.remove("THIS")
-        except:
-            self.ghostToast()
-        try:
-            self.wordsList.remove("THESE")
-        except:
-            self.ghostToast()
-        try:
-            self.wordsList.remove("FOR")
-        except:
-            self.ghostToast()
-        try:
-            self.wordsList.remove("IN")
-        except:
-            self.ghostToast()
-        try:
-            self.wordsList.remove("AT")
-        except:
-            self.ghostToast()
-        try:
-            self.wordsList.remove("")
-        except:
-            self.ghostToast()
+        temporary = nltk.pos_tag(self.wordsList)
+        for idx, tag in enumerate(temporary):
+            if (tag[1][:2]=="VB"):
+                self.verbs.append(tag[0])
+                del temporary[idx]
+            self.usefulWords.append(temporary[idx][0])
 
-    def setUsefulWords(self):
-        #Defines the final list of words that will be compared to the text
-        self.usefulWords = self.wordsList
+        for word in self.usefulWords:
+            if ((word == "A")or(word== "THE")or(word=="OF")or(word=="IN")):
+                self.usefulWords.remove(word)
         
 
     def prepareCompare(self):
         #Calls other class functions to make a clean, word-split question
         self.standardizeQuestion()
-        self.splitQuestionWords()
         self.identifyHeader()
         self.removeArticles()
-        self.setUsefulWords()
-        print("Comparing useful words = " , self.usefulWords)
-        print("The header of the question is: ", self.header)
+        #for word in self.verbs:
+            #print(wordnet_lemmatizer.lemmatize(word,pos="v"))
 
 
+
+class TextConverter():
+    Text = ""
+    sentenceList = []
+
+    def __init__(self,t):
+        self.Text = t
+        
+    def splitSentences(self):
+        self.sentenceList = self.Text.split(".")
+
+    def showSentences(self):
+        print(self.sentenceList)
+
+    def prepareCompare(self):
+        self.Text = self.Text.upper()
+        self.splitSentences()
+        for idx in range(0,len(self.sentenceList)-1,1):
+            sentence = self.sentenceList[idx]
+            punctuations="?:!.,;"
+            sentence_words = nltk.word_tokenize(sentence)
+            for word in sentence_words:
+                if word in punctuations:
+                    sentence_words.remove(word)
+            for i in range(0, len(sentence_words),1):
+                sentence_words[i] = wordnet_lemmatizer.lemmatize(sentence_words[i],pos="v")
+            self.sentenceList[idx] = sentence_words
+
+    def compare(self,question):
+        temporaryList = []
+        similarity = {}
+        maxSim = 0
+        maxSimIdx = 0
+        for idx in range(0, len(self.sentenceList)-1):
+            counter = 0
+            temporaryList = self.sentenceList[idx]
+            simIndex = 0
+            for idx2 in range(0, len(question)):
+                if question[idx2] in temporaryList:
+                    counter += 1
+            try:
+                simIndex = counter/len(temporaryList)
+            except Exception:
+                simIndex = 0
+            similarity[idx]=simIndex
+            if (simIndex > maxSim):
+                maxSim = simIndex
+                maxSimIdx = idx
+        return (self.sentenceList[maxSimIdx])
+
+d = os.getcwd()
+d = d.replace("API","data")
+sources = []
+sources = os.listdir(d)
+for i in range(0, len(sources)-1):
+    d = os.getcwd()
+    d = d.replace("API","data")
+    d = d + "\\" + sources[i]
+    sources[i] = d
 activeQuestion = Question()
 activeQuestion.getUserQuestion()
 activeQuestion.prepareCompare()
+answers = []
+for file in sources:
+    try:
+        currentText = open(file,"r")
+        entry = currentText.read()
+        myText = TextConverter(entry)
+        myText.prepareCompare()
+        answers.append(myText.compare(activeQuestion.usefulWords))
+    except Exception:
+        a = 42
+        
+        
+for sentence in answers:
+    finalAnswer = ""
+    for j in range(0,len(sentence)-1):
+        finalAnswer = finalAnswer + " " + sentence[j] 
+    print(finalAnswer)
+    print("\n")
+
+
+    
+
