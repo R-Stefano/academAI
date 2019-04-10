@@ -1,5 +1,4 @@
 div#background {
-    background-image: url('/static/images/background.png');
     background-size: cover;
     height: -webkit-fill-available;
     display: flex;
@@ -74,6 +73,22 @@ div#output-box textarea {
     font-size: 1.2em;
 }
 
+li.list-group-item {
+    background-color: rgba(255, 255, 255, 0);
+    color: white;
+}
+
+ul.list-group li:hover {
+    cursor: pointer;
+}
+
+li#positiveTag {
+    background-color: rgb(3, 125, 3) !important;
+}
+
+li#negativeTag {
+    background-color: rgb(125, 0, 0) !important;
+}
 @media only screen and (max-width: 600px) {
     div#background {
         width: fit-content;
@@ -81,4 +96,4 @@ div#output-box textarea {
     div#introduction-box {
       width: fit-content;
     }
-  }
+}
