@@ -110,6 +110,7 @@
             url: "{{ url_for('save_db') }}",
             data: JSON.stringify(data),
             contentType: 'application/json',
+            timeout: 120000, //set to 2 minutes
             success: function(data){
                 sessionStorage.removeItem("prev_input");
             }, 

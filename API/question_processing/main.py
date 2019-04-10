@@ -6,6 +6,7 @@ import time
 
 import nltk
 nltk.download('wordnet')
+nltk.download('punkt')
 
 def process(question):
     #start=time.time()
@@ -15,7 +16,13 @@ def process(question):
     required_answer = Answer()
     required_answer.setQuestion(comparison_question)
 
-    path="../data"
+    if (os.getcwd()=="/app"):
+        #app deployed
+        print('using deployed path')
+        path=os.getcwd()+"/data"
+    else:
+        #debugging app locally
+        path="../data"
     for file in os.listdir(path):
         try:
             currentFile = open(os.path.join(path,file),"r")

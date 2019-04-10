@@ -1,17 +1,27 @@
 from flask import Flask, render_template, request
 import json
 import os
-import psycopg2
 import question_processing.main as q_handler
-from db.dbManager import *
+import mysql.connector
+import sqlparse
+
+model_version=0
 
 #open connection
 app = Flask(__name__)
 
-DATABASE_URL='postgres://zvooegvhaqwbne:aba6c4f9bc784483820d76ff32a1b3bb7abdc87edf95f1eeaa1ec8643aa460c4@ec2-23-23-173-30.compute-1.amazonaws.com:5432/d1p8og4frpej6q'
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+def setConnection():
+    global mydb, mycursor
+    mydb = mysql.connector.connect(
+        host="us-cdbr-iron-east-03.cleardb.net",
+        user="be71cc213eeaba",
+        passwd="57a45c0b",
+        database="heroku_97435f84a55babb",
+        connection_timeout=120 #keep connection open for 30 min
+    )
 
-db.init_app(app)
+    mycursor = mydb.cursor()
+setConnection()
 
 @app.route("/")
 def home():
@@ -32,7 +42,6 @@ def generate_text():
     request.json:
         {'input': 'input_text'}
     
-    TODO: Change the sentences line in order to get the processed text
     '''
     if request.method == "POST":
         #Retrieve the question
@@ -62,7 +71,6 @@ def save_db():
                    {'sentence': 'sentence_3', 'rating': 'positiveTag'}]
     }
 
-    TODO: add queries for db
     '''
     tag_ids={
         'negativeTag':0,
@@ -72,24 +80,27 @@ def save_db():
     if request.method == "POST":
         #retrieve the data sended
         data=request.json
-        print('saving data on question', data['input'], 'on db')
+        #connection with the db lost, reset it
+        if not(mydb.is_connected()):
+            setConnection()
         #Insert the question
-        add_q = QueryEntry(data['input'])
-        db.session.add(add_q)
-        db.session.commit()
+        sql = "INSERT INTO queries (question,timestep,model_version) VALUES ('{}', NOW(), {})".format(data['input'], model_version)
+        mycursor.execute(sql)
+        mydb.commit()
+
         #retrieve the id assigned to the new entry
-        db.session.refresh(add_q)
-        q_id=add_q.id
+        q_id=mycursor.lastrowid
         for s in data['sentences']:
-            print(s['rating'])
-            print(tag_ids[s['rating']])
-            add_a = AnswerEntry(q_id, s['sentence'], tag_ids[s['rating']])
-            db.session.add(add_a)
-        db.session.commit()     
+            try:
+                sqlparse.parse(s['sentence'])
+                sql = "INSERT INTO answers VALUES (0, {} ,'{}', {})".format(q_id, s['sentence'], tag_ids[s['rating']])
+                mycursor.execute(sql)
+            except mysql.connector.errors.ProgrammingError:
+                print("Bad statement. Ignoring. \n", s['sentence'])   
+        mydb.commit() 
         return 'query saved'
     else:
         return 'error while saving the query'
-
 
 if __name__ == "__main__":
     app.run(debug=True)
