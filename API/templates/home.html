@@ -131,6 +131,7 @@
 
     //send the question to the server and return the answers
     function sendQuestion(questionText) {
+        displayModal('Wait!', 'Reading the lastest scientific papers to give you the best answer..');
         $.ajax({
             type: 'POST',
             url: "{{ url_for('generate_text') }}",
@@ -140,6 +141,9 @@
             success: function(data){
                 //delete the previous output
                 $('ul.list-group').html('');
+
+                //close the waiting popup
+                $('div#popup').hide();
                 //add the new output
                 for (var sent of data.sentences) {
                     $('ul.list-group').append('<li id="none" class="list-group-item d-flex justify-content-between align-items-center" onclick="setRating(event)">'+sent+'</li>')
@@ -173,9 +177,9 @@
         $('ul.list-group').on('mouseenter mouseleave', 'li.list-group-item', function(evt) {
             if (event.type == 'mouseover' ) {
                 if ($(this).attr('id')=='positiveTag') {
-                    $(this).attr('style','background-color: rgba(255,0,0,0.54) !important');
+                    $(this).attr('style','background-color: rgb(125, 0, 0) !important');
                 } else {
-                    $(this).attr('style','background-color: rgba(0,255,0,0.54) !important');
+                    $(this).attr('style','background-color: rgb(3, 125, 3) !important');
                 }
             } else {
                 $(this).attr('style','background-color: ');
@@ -201,7 +205,7 @@
                 if (isQuestionValid) {
                     sendQuestion(questionText);
                 } else {
-                    displayModal('Error!', "The question is not valid. It must contain: what, when, who, how, where");
+                    displayModal('Error!', "The question is not valid. It must start with: what, when, who, how, where, which or why");
                 }
             } else {
                 displayModal('Error!', 'The input can\'t be empty!');

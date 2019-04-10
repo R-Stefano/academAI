@@ -13,13 +13,10 @@ class Question():
     useful_list = []
     header = ""
 
-    def poseQuestion(self):
-        self.getUserQuestion()
+    def poseQuestion(self, question):
+        self.user_question=question
         self.prepareCompare()
         return self.useful_list
-
-    def getUserQuestion(self):
-        self.user_question = input("Please insert your question: ")
 
     def prepareCompare(self):
         #This function aims to remove punctuation and to capitalize and lemmatize the words

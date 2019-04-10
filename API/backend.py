@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 import json
 import os
 import psycopg2
+import question_processing.main as q_handler
 from db.dbManager import *
 
 #open connection
@@ -37,7 +38,7 @@ def generate_text():
         #Retrieve the question
         question=request.json['input']
         #this line must be changed with the processor
-        sentences=['here the first sentence','here the second sentence.','here the third one which is a little more longer']
+        sentences=q_handler.process(question) #['here the first sentence','here the second sentence.','here the third one which is a little more longer']
         #Create Json format to send back to front
         data = {
             'sentences':sentences

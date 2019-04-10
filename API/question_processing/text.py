@@ -8,66 +8,54 @@ from nltk.stem import WordNetLemmatizer
 wordnet_lemmatizer = WordNetLemmatizer()
 
 class Information:
-    text = ""
-    complete_list = []
-    useful_list = []
-
     def __init__(self,text):
         self.text = text
+        self.complete_list = []
+        self.useful_list = []
 
     def prepareCompare(self):
-        self.text = self.text.lower()
         self.splitSentences()
         self.tokenizeSentence()
-        self.removePunctuation()
-        self.removeArticles()
-        self.lemmatizeWords()
         
     def splitSentences(self):
         self.complete_list = self.text.split(".")
         
     def tokenizeSentence(self):
         #This function splits the words into elements of a list called words_list
-        temporary_list = []
         for sentence in self.complete_list:
-            new_sentence = nltk.word_tokenize(sentence)
-            temporary_list.append(new_sentence)
-        self.complete_list = temporary_list
-        self.useful_list = self.complete_list
+            sentence=sentence.lower()
+            sentence=self.removePunctuation(sentence)
+            sentence_tokens = nltk.word_tokenize(sentence)
+            useful_tokens=self.removeArticles(sentence_tokens)
+            lemmatized_tokens=self.lemmatizeWords(useful_tokens)
+            self.useful_list.append(lemmatized_tokens)
     
-    def removePunctuation(self):
+    def removePunctuation(self, sentence):
         #This function removes the punctuation from the list
         punctuation = "?:!.,;()\""
-        for sentence in self.useful_list:
-            for word in sentence:
-                if word in punctuation:
-                    sentence.remove(word)
+        for character in sentence:
+            if character in punctuation:
+                sentence=sentence.replace(character, '')
+        return sentence
                     
 
-    def removeArticles(self):
+    def removeArticles(self, sentence):
         #This function removes the articles that are used for grammar purpose but serve no big part in meaning purposes
         #They are removed to avoid sentence matching based on meaningless articles
         #TODO after evaluation check if it necessary to remove more particles
         #TODO check if this particles can be used somewhere else
         particles = ["the","a","of","in"]
-        for word in self.useful_list:
+        for word in sentence:
             if word in particles:
-                self.useful_list.remove(word)
-            if (len(word)==0):
-                self.useful_list.remove(word)
+                sentence.remove(word)
+        return sentence
 
-    def lemmatizeWords(self):
-        #lemmatizes useful list
-        lemmatized_sentences = []
-        for sentence in self.useful_list:
-            lemmatized_words = []
-            for word in sentence:
-                new_word = wordnet_lemmatizer.lemmatize(word,pos = "v")
-                lemmatized_words.append(new_word)
-            lemmatized_sentences.append(lemmatized_words)
-        self.useful_list = lemmatized_sentences
-
-    def getUsefulText(self):
-        return self.useful_list
+    def lemmatizeWords(self, sentence):
+        #lemmatizes the sentence
+        lemmatized_words = []
+        for word in sentence:
+            new_word = wordnet_lemmatizer.lemmatize(word,pos = "v")
+            lemmatized_words.append(new_word)
+        return lemmatized_words
 
 
