@@ -1,3 +1,8 @@
+'''
+This file is used to split large pdfs into smaller ones. 
+because the pdf parser program doesn't work for pdfs too large
+'''
+
 from PyPDF2 import PdfFileWriter, PdfFileReader
 
 inputpdf = PdfFileReader(open("Fundamental_Neuroscience_2008.pdf", "rb"))

@@ -20,6 +20,7 @@ class Answer:
                     self.top_sentences[idx+1:]=self.top_sentences[idx:len(self.top_sentences)-1]
                     self.top_sentences[idx]=original_text[s_idx]
                     break
+        return self.top_sentences
 
     def getSimilarityIndex(self,sentence):
         #This function calculates how much a sentence resembles the question
@@ -34,6 +35,3 @@ class Answer:
             print("The length of the sentence is 0")
             similarity = 0
         return similarity
-
-    def getFinalAnswer(self):
-        return self.top_sentences
