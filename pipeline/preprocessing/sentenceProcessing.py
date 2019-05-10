@@ -24,7 +24,7 @@ def preprocessing(sentence):
     #each sentence is split in a list of words
     sentence=nltk.word_tokenize(sentence)
     #the stopwords are removed from the list of words
-    particles = ["the","a","of","in"]
+    particles = ["the","a","of","in","and"]
     for word in sentence:
         if word in particles:
             sentence.remove(word)
@@ -34,3 +34,21 @@ def preprocessing(sentence):
         lemmatizedSentence.append(wordnet_lemmatizer.lemmatize(w,pos = "v"))
 
     return lemmatizedSentence
+
+
+def textToLemmatized(sentences_text):
+    text=removeParenthesis(sentences_text)
+    text=removeSpecialCharacters(text)
+    text=removeDoubleSpaces(text)
+    sentencesList=text.split('.')
+    formattedSentencesList=[]
+    for idx, sentence in enumerate(sentencesList):
+        lemmatizedSentence=preprocessing(sentence)
+        formattedSentencesList.append(lemmatizedSentence)
+    
+    return sentencesList, formattedSentencesList
+
+def questionPreprocessing(question_text):
+    q=removeSpecialCharacters(question_text)
+    q=preprocessing(q)
+    return q

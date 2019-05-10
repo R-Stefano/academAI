@@ -1,6 +1,8 @@
 __pycache__
-old_scripts/*
-preprocessing/pdfs/*
-preprocessing/texts/*
-preprocessing/xml2text/*
-data/*
+pipeline/preprocessing/pdfs/*.pdf
+pipeline/preprocessing/xml2text/*.xml
+pipeline/model_testing/models/flair_fasttext/*
+pipeline/model_testing/models/google_USE/*
+pipeline/analysis/models/flair_fasttext/*
+pipeline/analysis/models/google_USE/*
+

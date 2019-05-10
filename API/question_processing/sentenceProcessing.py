@@ -1,5 +1,8 @@
 import re
 import nltk
+nltk.download('punkt')
+nltk.download('wordnet')
+
 from nltk.stem import WordNetLemmatizer
 wordnet_lemmatizer = WordNetLemmatizer()
 # Import and download stopwords from NLTK.
