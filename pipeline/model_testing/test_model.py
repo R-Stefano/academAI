@@ -8,8 +8,8 @@ import pickle
 
 import analyze_embeddings as analyze
 
-from models import model_3
-model=model_3.Model()
+from models import model_3 as mdl
+model=mdl.Model()
 
 #path to the dataset file
 pathDataset="../preprocessing/test_dataset.json"
@@ -72,7 +72,6 @@ if __name__ == "__main__":
         modelResults['predictions']['sentences'].append(top_sentences)
         modelResults['labels']['scores'].append(labels_scores)
         modelResults['labels']['sentences'].append(labelsList[q_idx])
-
         print('--------\n')
     
     #save results on disk

@@ -11,10 +11,11 @@ import numpy as np
 
 from flair.data import Sentence
 from flair.embeddings import WordEmbeddings
+from flair.models import SequenceTagger
 
 class Model():
     def __init__(self):
-        self.name="fasttext weighted_position"
+        self.name="fasttext weighted_tags"
         
         modelFilePath="flair_fasttext/en-fasttext-news-300d-1M"
         if(os.path.isfile(modelFilePath)):
@@ -26,6 +27,7 @@ class Model():
     
     def setup(self):
         self.model = WordEmbeddings('news')
+        self.tagger = SequenceTagger.load('pos-fast')
 
     def questionPreprocessing(self, question):
         '''
@@ -38,7 +40,17 @@ class Model():
         #substitute all the characters that are not letters, numbers, white space, %, or dots with a space
         q=re.sub(r'[^a-zA-Z0-9\s%\-]','',q)
         question_obj=Sentence(q)
-        return question_obj
+
+        self.tagger.predict(question_obj)
+        dic_res=question_obj.to_dict(tag_type='pos')
+        relevantTags=["NN","JJ"]
+        tags_weights=[]
+        #assign a weight of 1 to NN, NNS, JJ, JJS tags 0.5 to all the others
+        for tag in dic_res['entities']:
+            tags_weights.append(0.5)
+            if tag['type'][:2] in relevantTags:
+                tags_weights.append(1.0)        
+        return question_obj, tags_weights
     
     def sentenceProcessing(self, sentence):
         '''
@@ -50,17 +62,28 @@ class Model():
         s=sentence.lower()
         s=re.sub(r'[^a-zA-Z0-9\s%\-]','',s)
         sentence_obj=Sentence(s)
-        return sentence_obj
+
+        self.tagger.predict(sentence_obj)
+        dic_res=sentence_obj.to_dict(tag_type='pos')
+        relevantTags=["NN","JJ"]
+        tags_weights=[]
+        #assign a weight of 1 to NN, NNS, JJ, JJS tags 0.5 to all the others
+        for tag in dic_res['entities']:
+            tags_weights.append(0.5)
+            if tag['type'][:2] in relevantTags:
+                tags_weights.append(1.0)
+
+        return sentence_obj, tags_weights
 
     def cosineSimilarity(self, vector1, vector2):
         return np.dot(vector1, vector2)/(np.linalg.norm(vector1)*np.linalg.norm(vector2))
 
-    def computeSimilarity(self, sentence1, sentence2):
+    def computeSimilarity(self, sentence1, s1_weights, sentence2, s2_weigths):
         #Convert words to vecs
         self.model.embed(sentence1)
         q_vecs=[]
-        for token in sentence1:
-            q_vecs.append(token.embedding.data.numpy())
+        for idx, token in enumerate(sentence1):
+            q_vecs.append(token.embedding.data.numpy() * s1_weights[idx])
 
         #average word vectors to create a "sentence" vector
         q_vec=np.mean(q_vecs, axis=0)
@@ -69,8 +92,7 @@ class Model():
         self.model.embed(sentence2)
         s_vecs=[]
         for idx, token in enumerate(sentence2):
-            w=(len(sentence2)-idx)/len(sentence2)
-            s_vecs.append(w*token.embedding.data.numpy())
+            s_vecs.append(token.embedding.data.numpy() * s2_weigths[idx])
 
         #average word vectors to create a "sentence" vector
         s_vec=np.mean(s_vecs, axis=0)
@@ -95,13 +117,14 @@ class Model():
             top_scores: a list of integers. The score of the best 3 sentences
             top_sentences: a list of strings. The sentences with the best score
         '''
-        q_obj=self.questionPreprocessing(question)
+        q_obj, tags_weights=self.questionPreprocessing(question)
 
         top_scores=[0,0,0]
         top_sentences=["","",""]
 
         for sentence in sentences:
-            score=self.computeSimilarity(q_obj, self.sentenceProcessing(sentence))
+            s_obj, s_weights=self.sentenceProcessing(sentence)
+            score=self.computeSimilarity(q_obj, tags_weights, s_obj, s_weights)
             top_scores, top_sentences=self.sortResults(top_scores, top_sentences, score, sentence)
         
         return top_scores, top_sentences

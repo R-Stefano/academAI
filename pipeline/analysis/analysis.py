@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 
 
 folderResults="results_data"
+imagesFolder="imgs"
 
 def assessScore(model, labelSentencesList, predSentencesList):
     print('Computing average WMDistance between label sentences and predicted sentence')
@@ -53,10 +54,10 @@ def accuracy(modelsResults):
     return ModelsWrongPredsIdxs
 
 def displayWrongPreds(ModelsWrongPredsIdxs, modelsResults):
-    print(ModelsWrongPredsIdxs)
     #questions=np.asarray(models_results['questions'])
     #labelSentences=np.asarray(models_results['labelSentences'])
     for modelResult in modelsResults:
+        print('Display wrong predictions for', modelResult['name'])
         idxs=ModelsWrongPredsIdxs[modelResult['name']]
 
         #Retrieve the data of wrong predictions to display
@@ -110,13 +111,13 @@ def displayWrongPreds(ModelsWrongPredsIdxs, modelsResults):
             mng = plt.get_current_fig_manager()
             mng.full_screen_toggle()
             plt.tight_layout()
-            plt.savefig('{}_q{}.png'.format(modelResult['name'], img_idx))
-            #plt.show()
+            plt.savefig(imagesFolder+'/{}_q{}.png'.format(modelResult['name'], img_idx))
+            plt.show()
             img_idx +=1
 
 modelsResults=[]
 for filename in os.listdir(folderResults):
-    modelResult=pickle.load(open(folderResults+"/"+filename, "rb"))
+    modelResult=pickle.load(open(os.path.join(folderResults,filename), "rb"))
 
     modelsResults.append(modelResult)
 
