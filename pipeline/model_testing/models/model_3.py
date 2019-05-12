@@ -38,7 +38,7 @@ class Model():
 
     def sentenceProcessing(self, sentence):
         #encoding sentences
-        s_vecs=np.array(self.sess.run(self.model([sentence])))
+        s_vecs=np.array(self.sess.run(self.model(sentence)))
         return s_vecs
     def cosineSimilarity(self, vector1, vector2):
         return np.dot(vector1, np.transpose(vector2))[0]/(np.linalg.norm(np.repeat(vector1, axis=0, repeats=vector2.shape[0]), axis=-1)*np.linalg.norm(vector2, axis=-1))

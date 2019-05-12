@@ -52,7 +52,8 @@ if __name__ == "__main__":
         with open(datasetPath) as dataset:
             data= dataset.read()
             datasetTokenized=nltk.sent_tokenize(data)
-            for i_start in range(0, len(datasetTokenized, 50)):
+            for i_start in range(0, len(datasetTokenized), 50):
+                print('{}-{}'.format(i_start, i_end))
                 i_end=i_start+50
                 sentencesDataset.extend(model.sentenceProcessing(datasetTokenized[i_start:i_end]))
                 
