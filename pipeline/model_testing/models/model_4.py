@@ -41,16 +41,22 @@ class Model():
         q=re.sub(r'[^a-zA-Z0-9\s%\-]','',q)
         question_obj=Sentence(q)
 
+        self.model.embed(question_obj)
         self.tagger.predict(question_obj)
+
         dic_res=question_obj.to_dict(tag_type='pos')
         relevantTags=["NN","JJ"]
-        tags_weights=[]
+
+        q_vecs=[]
         #assign a weight of 1 to NN, NNS, JJ, JJS tags 0.5 to all the others
-        for tag in dic_res['entities']:
-            tags_weights.append(0.5)
+        for tag, token in zip(dic_res['entities'], question_obj):
+            w=0.5
             if tag['type'][:2] in relevantTags:
-                tags_weights.append(1.0)        
-        return question_obj, tags_weights
+                w=1.0
+
+            q_vecs.append(token.embedding.data.numpy() * w)
+                 
+        return np.mean(q_vecs, axis=0)
     
     def sentenceProcessing(self, sentence):
         '''
@@ -63,39 +69,27 @@ class Model():
         s=re.sub(r'[^a-zA-Z0-9\s%\-]','',s)
         sentence_obj=Sentence(s)
 
+        #Convert words to vecs
+        self.model.embed(sentence_obj)
+        #Define words' tags
         self.tagger.predict(sentence_obj)
         dic_res=sentence_obj.to_dict(tag_type='pos')
         relevantTags=["NN","JJ"]
-        tags_weights=[]
+        w_vecs=[]
         #assign a weight of 1 to NN, NNS, JJ, JJS tags 0.5 to all the others
-        for tag in dic_res['entities']:
-            tags_weights.append(0.5)
+        for tag, token in zip(dic_res['entities'], sentence_obj):
+            w=0.5
             if tag['type'][:2] in relevantTags:
-                tags_weights.append(1.0)
+                w=1.0
+            w_vecs.append(token.embedding.data.numpy() * w)
 
-        return sentence_obj, tags_weights
+        #average word vectors to create a "sentence" vector
+        return np.mean(w_vecs, axis=0)
 
     def cosineSimilarity(self, vector1, vector2):
         return np.dot(vector1, vector2)/(np.linalg.norm(vector1)*np.linalg.norm(vector2))
 
-    def computeSimilarity(self, sentence1, s1_weights, sentence2, s2_weigths):
-        #Convert words to vecs
-        self.model.embed(sentence1)
-        q_vecs=[]
-        for idx, token in enumerate(sentence1):
-            q_vecs.append(token.embedding.data.numpy() * s1_weights[idx])
-
-        #average word vectors to create a "sentence" vector
-        q_vec=np.mean(q_vecs, axis=0)
-
-        #Convert words to vecs
-        self.model.embed(sentence2)
-        s_vecs=[]
-        for idx, token in enumerate(sentence2):
-            s_vecs.append(token.embedding.data.numpy() * s2_weigths[idx])
-
-        #average word vectors to create a "sentence" vector
-        s_vec=np.mean(s_vecs, axis=0)
+    def computeSimilarity(self, q_vec, s_vec):
         return self.cosineSimilarity(q_vec, s_vec)
     
     def sortResults(self, top_scores, top_sentences, score, original_text):
@@ -108,7 +102,7 @@ class Model():
                 break
         return top_scores, top_sentences
 
-    def getAnswer(self, question, sentences):
+    def getAnswer(self, question, s_vecs, sentences):
         '''
         question: the question as a string
         sentences: a list of sentences as strings
@@ -117,15 +111,14 @@ class Model():
             top_scores: a list of integers. The score of the best 3 sentences
             top_sentences: a list of strings. The sentences with the best score
         '''
-        q_obj, tags_weights=self.questionPreprocessing(question)
+        q_vec=self.questionPreprocessing(question)
 
         top_scores=[0,0,0]
         top_sentences=["","",""]
 
-        for sentence in sentences:
-            s_obj, s_weights=self.sentenceProcessing(sentence)
-            score=self.computeSimilarity(q_obj, tags_weights, s_obj, s_weights)
-            top_scores, top_sentences=self.sortResults(top_scores, top_sentences, score, sentence)
+        for idx, s_vec in enumerate(s_vecs):
+            score=self.computeSimilarity(q_vec, s_vec)
+            top_scores, top_sentences=self.sortResults(top_scores, top_sentences, score, sentences[idx])
         
         return top_scores, top_sentences
         

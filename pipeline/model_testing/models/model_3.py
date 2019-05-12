@@ -15,7 +15,7 @@ import tensorflow_hub as hub
 
 class Model():
     def __init__(self):
-        self.name="Universal Sentence Encoder"
+        self.name="Universal_Sentence_Encoder"
         self.sess=tf.Session()
 
         self.modelFilePath="google_USE/"
@@ -36,6 +36,10 @@ class Model():
         # Import the Universal Sentence Encoder's TF Hub module
         self.model = hub.Module(module_url)
 
+    def sentenceProcessing(self, sentence):
+        #encoding sentences
+        s_vecs=np.array(self.sess.run(self.model([sentence])))
+        return s_vecs
     def cosineSimilarity(self, vector1, vector2):
         return np.dot(vector1, np.transpose(vector2))[0]/(np.linalg.norm(np.repeat(vector1, axis=0, repeats=vector2.shape[0]), axis=-1)*np.linalg.norm(vector2, axis=-1))
     
@@ -49,7 +53,7 @@ class Model():
                 break
         return top_scores, top_sentences
 
-    def getAnswer(self, question, sentences):
+    def getAnswer(self, question, s_vecs, sentences):
         '''
         question: the question as a string
         sentences: a list of sentences as strings
@@ -60,9 +64,6 @@ class Model():
         '''
         #encoding question
         q_vec=np.array(self.sess.run(self.model([question])))[0]
-
-        #encoding sentences
-        s_vecs=np.array(self.sess.run(self.model(sentences)))
 
         scores=self.cosineSimilarity(np.reshape(q_vec, (1,-1)), s_vecs).tolist()
         

@@ -14,7 +14,7 @@ from flair.embeddings import WordEmbeddings
 
 class Model():
     def __init__(self):
-        self.name="fasttext weighted_position"
+        self.name="fasttext_weighted_position"
         
         modelFilePath="flair_fasttext/en-fasttext-news-300d-1M"
         if(os.path.isfile(modelFilePath)):
@@ -38,7 +38,11 @@ class Model():
         #substitute all the characters that are not letters, numbers, white space, %, or dots with a space
         q=re.sub(r'[^a-zA-Z0-9\s%\-]','',q)
         question_obj=Sentence(q)
-        return question_obj
+        self.model.embed(question_obj)
+        words_vec=[]
+        for token in question_obj:
+            words_vec.append(token.embedding.data.numpy())
+        return words_vec
     
     def sentenceProcessing(self, sentence):
         '''
@@ -50,27 +54,25 @@ class Model():
         s=sentence.lower()
         s=re.sub(r'[^a-zA-Z0-9\s%\-]','',s)
         sentence_obj=Sentence(s)
-        return sentence_obj
+        self.model.embed(sentence_obj)
+        words_vec=[]
+        for token in sentence_obj:
+            words_vec.append(token.embedding.data.numpy())
+
+        return words_vec
 
     def cosineSimilarity(self, vector1, vector2):
         return np.dot(vector1, vector2)/(np.linalg.norm(vector1)*np.linalg.norm(vector2))
 
     def computeSimilarity(self, sentence1, sentence2):
-        #Convert words to vecs
-        self.model.embed(sentence1)
-        q_vecs=[]
-        for token in sentence1:
-            q_vecs.append(token.embedding.data.numpy())
-
         #average word vectors to create a "sentence" vector
-        q_vec=np.mean(q_vecs, axis=0)
+        q_vec=np.mean(sentence1, axis=0)
 
-        #Convert words to vecs
-        self.model.embed(sentence2)
+        #Weight the words based on the position
         s_vecs=[]
-        for idx, token in enumerate(sentence2):
+        for idx, vec in enumerate(sentence2):
             w=(len(sentence2)-idx)/len(sentence2)
-            s_vecs.append(w*token.embedding.data.numpy())
+            s_vecs.append(w*vec)
 
         #average word vectors to create a "sentence" vector
         s_vec=np.mean(s_vecs, axis=0)
@@ -86,7 +88,7 @@ class Model():
                 break
         return top_scores, top_sentences
 
-    def getAnswer(self, question, sentences):
+    def getAnswer(self, question, sentences_vecs, sentences):
         '''
         question: the question as a string
         sentences: a list of sentences as strings
@@ -95,14 +97,14 @@ class Model():
             top_scores: a list of integers. The score of the best 3 sentences
             top_sentences: a list of strings. The sentences with the best score
         '''
-        q_obj=self.questionPreprocessing(question)
+        q_vecs=self.questionPreprocessing(question)
 
         top_scores=[0,0,0]
         top_sentences=["","",""]
 
-        for sentence in sentences:
-            score=self.computeSimilarity(q_obj, self.sentenceProcessing(sentence))
-            top_scores, top_sentences=self.sortResults(top_scores, top_sentences, score, sentence)
+        for idx, sentence in enumerate(sentences_vecs):
+            score=self.computeSimilarity(q_vecs, sentence)
+            top_scores, top_sentences=self.sortResults(top_scores, top_sentences, score, sentences[idx])
         
         return top_scores, top_sentences
         

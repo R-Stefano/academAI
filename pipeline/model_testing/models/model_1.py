@@ -93,7 +93,7 @@ class Model():
                 break
         return top_scores, top_sentences
 
-    def getAnswer(self, question, sentences):
+    def getAnswer(self, question, processedSentences, sentences):
         '''
         question: the question as a string
         sentences: a list of sentences as strings
@@ -107,9 +107,9 @@ class Model():
         top_scores=[0,0,0]
         top_sentences=["","",""]
 
-        for sentence in sentences:
-            score=self.computeSimilarity(q, self.sentenceProcessing(sentence))
-            top_scores, top_sentences=self.sortResults(top_scores, top_sentences, score, sentence)
+        for idx, sentence in enumerate(processedSentences):
+            score=self.computeSimilarity(q, sentence)
+            top_scores, top_sentences=self.sortResults(top_scores, top_sentences, score, sentences[idx])
 
         return top_scores, top_sentences
         
