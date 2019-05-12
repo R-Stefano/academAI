@@ -14,7 +14,7 @@ from flair.embeddings import WordEmbeddings
 
 class Model():
     def __init__(self):
-        self.name="fasttext_weighted_position"
+        self.name="fasttext_average"
         
         modelFilePath="flair_fasttext/en-fasttext-news-300d-1M"
         if(os.path.isfile(modelFilePath)):
@@ -42,7 +42,10 @@ class Model():
         words_vec=[]
         for token in question_obj:
             words_vec.append(token.embedding.data.numpy())
-        return words_vec
+        
+        #average word vectors to create a "sentence" vector
+        q_vec=np.mean(words_vec, axis=0)
+        return q_vec
     
     def sentenceProcessing(self, sentence):
         '''
@@ -59,23 +62,14 @@ class Model():
         for token in sentence_obj:
             words_vec.append(token.embedding.data.numpy())
 
-        return words_vec
+        #average word vectors to create a "sentence" vector
+        s_vec=np.mean(words_vec, axis=0)
+        return s_vec
 
     def cosineSimilarity(self, vector1, vector2):
         return np.dot(vector1, vector2)/(np.linalg.norm(vector1)*np.linalg.norm(vector2))
 
-    def computeSimilarity(self, sentence1, sentence2):
-        #average word vectors to create a "sentence" vector
-        q_vec=np.mean(sentence1, axis=0)
-
-        #Weight the words based on the position
-        s_vecs=[]
-        for idx, vec in enumerate(sentence2):
-            w=(len(sentence2)-idx)/len(sentence2)
-            s_vecs.append(w*vec)
-
-        #average word vectors to create a "sentence" vector
-        s_vec=np.mean(s_vecs, axis=0)
+    def computeSimilarity(self, q_vec, s_vec):
         return self.cosineSimilarity(q_vec, s_vec)
     
     def sortResults(self, top_scores, top_sentences, score, original_text):
@@ -88,7 +82,7 @@ class Model():
                 break
         return top_scores, top_sentences
 
-    def getAnswer(self, question, sentences_vecs, sentences):
+    def getAnswer(self, question, s_vecs, sentences):
         '''
         question: the question as a string
         sentences: a list of sentences as strings
@@ -97,13 +91,13 @@ class Model():
             top_scores: a list of integers. The score of the best 3 sentences
             top_sentences: a list of strings. The sentences with the best score
         '''
-        q_vecs=self.questionPreprocessing(question)
+        q_vec=self.questionPreprocessing(question)
 
         top_scores=[0,0,0]
         top_sentences=["","",""]
 
-        for idx, sentence in enumerate(sentences_vecs):
-            score=self.computeSimilarity(q_vecs, sentence)
+        for idx, sentence in enumerate(s_vecs):
+            score=self.computeSimilarity(q_vec, sentence)
             top_scores, top_sentences=self.sortResults(top_scores, top_sentences, score, sentences[idx])
         
         return top_scores, top_sentences

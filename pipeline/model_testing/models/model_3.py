@@ -9,6 +9,7 @@ import os
 import nltk
 import re
 import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 
 import tensorflow as tf
 import tensorflow_hub as hub
@@ -65,7 +66,7 @@ class Model():
         #encoding question
         q_vec=np.array(self.sess.run(self.model([question])))[0]
 
-        scores=self.cosineSimilarity(np.reshape(q_vec, (1,-1)), s_vecs).tolist()
+        scores=cosine_similarity(np.reshape(q_vec, (1,-1)), s_vecs).tolist()
         
         top_scores=[0,0,0]
         top_sentences=["","",""]

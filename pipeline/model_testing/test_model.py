@@ -33,9 +33,7 @@ def loadQuestions():
 def processTestSentences(labelsList, model):
     processedLabels=[]
     for example in labelsList:
-        ex_list=[]
-        for s in example:
-            ex_list.append(model.sentenceProcessing(s))
+        ex_list=model.sentenceProcessing(example)
         processedLabels.append(ex_list)
     
     return processedLabels
@@ -52,11 +50,8 @@ if __name__ == "__main__":
         with open(datasetPath) as dataset:
             data= dataset.read()
             datasetTokenized=nltk.sent_tokenize(data)
-            for i_start in range(0, len(datasetTokenized), 50):
-                print('{}-{}'.format(i_start, i_end))
-                i_end=i_start+50
-                sentencesDataset.extend(model.sentenceProcessing(datasetTokenized[i_start:i_end]))
-                
+            for idx, s in enumerate(datasetTokenized):
+                sentencesDataset.append(model.sentenceProcessing(s))
 
     #import test sentences
     questionsList, labelsList=loadQuestions()
@@ -79,8 +74,6 @@ if __name__ == "__main__":
 
     analyze.displayEmbeddings(x, words)
     analyze.computeWMD(model, [sentencesDataset[0]], sentencesDataset[1:])
-    '''
-    '''
     vecs2d=[]
     #work on lower dimensional vectors(2) and not 300
     for s in sentencesDataset:
@@ -89,7 +82,6 @@ if __name__ == "__main__":
     
     print(len(vecs2d))
     '''
-
     modelResults={
         'name':model.name,
         'questions': [],
@@ -110,14 +102,14 @@ if __name__ == "__main__":
         modelResults['labels']['scores'].append(labels_scores)
         modelResults['labels']['sentences'].append(labelsList[q_idx])
         print('--------\n')
-    
     #save results on disk
     with open(model.name+"_results", "wb") as f:
         pickle.dump(modelResults, f)
-    
+    '''
     #save model_dataset on disk
     with open(model.name+"_original_data", "wb") as f:
         pickle.dump(datasetTokenized, f)
 
     with open(model.name+"_processed_data", "wb") as f:
         pickle.dump(sentencesDataset, f)
+    '''

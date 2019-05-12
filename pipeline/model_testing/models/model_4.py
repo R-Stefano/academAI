@@ -8,6 +8,8 @@ The relevance is computed as the number of times the question-words appear in th
 import os
 import re
 import numpy as np
+import nltk
+from sklearn.metrics.pairwise import cosine_similarity
 
 from flair.data import Sentence
 from flair.embeddings import WordEmbeddings
@@ -15,7 +17,7 @@ from flair.models import SequenceTagger
 
 class Model():
     def __init__(self):
-        self.name="fasttext weighted_tags"
+        self.name="fasttext_tags_matrix"
         
         modelFilePath="flair_fasttext/en-fasttext-news-300d-1M"
         if(os.path.isfile(modelFilePath)):
@@ -42,21 +44,16 @@ class Model():
         question_obj=Sentence(q)
 
         self.model.embed(question_obj)
-        self.tagger.predict(question_obj)
-
-        dic_res=question_obj.to_dict(tag_type='pos')
-        relevantTags=["NN","JJ"]
-
+        #Define words' tags
+        tags_res=nltk.pos_tag(nltk.word_tokenize(q))
+        relevantTags=["NN","JJ","VB"]
         q_vecs=[]
         #assign a weight of 1 to NN, NNS, JJ, JJS tags 0.5 to all the others
-        for tag, token in zip(dic_res['entities'], question_obj):
-            w=0.5
-            if tag['type'][:2] in relevantTags:
-                w=1.0
-
-            q_vecs.append(token.embedding.data.numpy() * w)
+        for tag, token in zip(tags_res, question_obj):
+            if tag[-1][:2] in relevantTags:
+                q_vecs.append(token.embedding.data.numpy())
                  
-        return np.mean(q_vecs, axis=0)
+        return q_vecs
     
     def sentenceProcessing(self, sentence):
         '''
@@ -72,25 +69,32 @@ class Model():
         #Convert words to vecs
         self.model.embed(sentence_obj)
         #Define words' tags
-        self.tagger.predict(sentence_obj)
-        dic_res=sentence_obj.to_dict(tag_type='pos')
-        relevantTags=["NN","JJ"]
+        tags_res=nltk.pos_tag(nltk.word_tokenize(s))
+        relevantTags=["NN","JJ","VB"]
         w_vecs=[]
         #assign a weight of 1 to NN, NNS, JJ, JJS tags 0.5 to all the others
-        for tag, token in zip(dic_res['entities'], sentence_obj):
-            w=0.5
-            if tag['type'][:2] in relevantTags:
-                w=1.0
-            w_vecs.append(token.embedding.data.numpy() * w)
+        for tag, token in zip(tags_res, sentence_obj):
+            if tag[-1][:2] in relevantTags:
+                w_vecs.append(token.embedding.data.numpy())
 
         #average word vectors to create a "sentence" vector
-        return np.mean(w_vecs, axis=0)
-
-    def cosineSimilarity(self, vector1, vector2):
-        return np.dot(vector1, vector2)/(np.linalg.norm(vector1)*np.linalg.norm(vector2))
+        return w_vecs
 
     def computeSimilarity(self, q_vec, s_vec):
-        return self.cosineSimilarity(q_vec, s_vec)
+        #some sentence doesn't have nouns, adjectives or verbs
+        if len(s_vec)==0:
+            score=0
+        else:
+            sim_matrix=cosine_similarity(q_vec, s_vec)
+            #for each word in the question, get the max similarity.
+            #average them
+            score=np.mean(np.max(cosine_similarity(q_vec, s_vec), axis=-1))
+
+            #sentence word, max among question words
+            #np.mean(np.max(cosine_similarity(q_vec, s_vec), axis=0))
+            #simple matrix average
+            #np.mean(cosine_similarity(q_vec, s_vec))
+        return score
     
     def sortResults(self, top_scores, top_sentences, score, original_text):
         for idx, value in enumerate(top_scores):
@@ -119,7 +123,6 @@ class Model():
         for idx, s_vec in enumerate(s_vecs):
             score=self.computeSimilarity(q_vec, s_vec)
             top_scores, top_sentences=self.sortResults(top_scores, top_sentences, score, sentences[idx])
-        
         return top_scores, top_sentences
         
 
