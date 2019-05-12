@@ -52,10 +52,10 @@ if __name__ == "__main__":
         with open(datasetPath) as dataset:
             data= dataset.read()
             datasetTokenized=nltk.sent_tokenize(data)
-            #process each sentence according to the model
-            for i, s in enumerate(datasetTokenized):
-                print(i)
-                sentencesDataset.append(model.sentenceProcessing(s))
+            for i_start in range(0, len(datasetTokenized, 50)):
+                i_end=i_start+50
+                sentencesDataset.extend(model.sentenceProcessing(datasetTokenized[i_start:i_end]))
+                
 
     #import test sentences
     questionsList, labelsList=loadQuestions()
