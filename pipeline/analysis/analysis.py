@@ -49,7 +49,7 @@ def accuracy(modelsResults):
         plt.bar(idx+1, ModelsAccuracies[key], label=key)
         plt.text(idx+0.9, ModelsAccuracies[key]+0.01, '{:.2f}'.format(ModelsAccuracies[key]) ,color='black', fontweight='bold')
     
-    plt.xticks([i+1 for i in range(len(ModelsAccuracies))], [key for key in ModelsAccuracies])
+    plt.xticks([i+1 for i in range(len(ModelsAccuracies))], [key for key in ModelsAccuracies], rotation=45)
     plt.show()
     return ModelsWrongPredsIdxs
 
@@ -75,7 +75,13 @@ def displayWrongPreds(ModelsWrongPredsIdxs, modelsResults):
             trueSentScore=trueSentScore[0]
             pred=pred[0]
             trueSent=trueSent[0]
-
+            print('Question:', q[0])
+            for idx, p in enumerate(pred):
+                print('Score: {:.2f} | {}'.format(predScore[idx], p))
+            print('\nLabels')
+            for idx, p in enumerate(trueSent):
+                print('Score: {:.2f} | {}'.format(trueSentScore[idx], p))
+            print('\n--------------\n')
             #define y-axis values
             yaxis=[i for i in range(len(predScore) + len(trueSentScore))]
 
@@ -112,9 +118,9 @@ def displayWrongPreds(ModelsWrongPredsIdxs, modelsResults):
             mng.full_screen_toggle()
             plt.tight_layout()
             plt.savefig(imagesFolder+'/{}_q{}.png'.format(modelResult['name'], img_idx))
-            plt.show()
+            #plt.show()
             img_idx +=1
-
+        print('\n\n-----------------\n\n')
 modelsResults=[]
 for filename in os.listdir(folderResults):
     modelResult=pickle.load(open(os.path.join(folderResults,filename), "rb"))
